@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Use environment for secret isolation (create 'sandbox' or 'test' env in repo settings)
-    environment: Production       # ← Change to your env name (sandbox/uat/etc.)
+    environment: sandbox       # ← Change to your env name (sandbox/uat/etc.)
 
     steps:
       - name: Checkout code
@@ -41,13 +41,17 @@ jobs:
           sf org display --target-org test-org
 
       - name: Run All Apex Tests with Code Coverage
-         run: |
+        run: |
+          # Runs ALL local tests + shows code coverage + waits up to 30 min
           sf apex test run \
             --target-org test-org \
             --code-coverage \
             --result-format human \
             --wait 30
 
-      - name: Cleanup
+          # Optional: If you want JUnit format for CI reporting (GitHub shows nice summary)
+          # sf apex test run --target-org test-org --code-coverage --result-format junit --wait 30 > test-results.xml
+
+      - name: Cleanup sensitive files
         if: always()
         run: rm -f server.key
