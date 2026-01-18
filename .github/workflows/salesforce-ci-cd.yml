@@ -1,40 +1,58 @@
-# .github/workflows/salesforce-ci-cd.yml
-name: Salesforce CI/CD
+# .github/workflows/salesforce-run-tests.yml
+name: Salesforce - Run Apex Tests Only
 
 on:
-  pull_request:
-    branches: [ main, uat ]
-  push:
-    branches: [ main ]
+  workflow_dispatch:           # Manual trigger from GitHub UI (best for beginners/testing)
+  schedule:
+    - cron: '0 0 * * *'        # Optional: every day at midnight UTC (adjust as needed)
+  pull_request:                # Optional: run on PRs if you want
+    branches: [main, uat]
 
 jobs:
-  validate-and-deploy:
+  run-apex-tests:
     runs-on: ubuntu-latest
-    environment:  # ← Recommended: use environment for secrets isolation
-      name: ${{ github.ref == 'refs/heads/main' && 'Production'}}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # Important for delta!
 
-      - name: Install Salesforce CLI
+    # Use environment for secret isolation (create 'sandbox' or 'test' env in repo settings)
+    environment: Production       # ← Change to your env name (sandbox/uat/etc.)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install latest Salesforce CLI
         run: |
           npm install -g @salesforce/cli
-          echo "sf version: $(sf --version)"
+          sf --version
 
       - name: Authenticate with JWT
         run: |
+          # Write private key from secret
           echo "${{ secrets.SF_JWT_KEY }}" > server.key
-          sf login org jwt --client-id ${{ secrets.SF_CONSUMER_KEY }} \
+
+          # Modern login command
+          sf org login jwt \
+            --client-id ${{ secrets.SF_CONSUMER_KEY }} \
             --jwt-key-file server.key \
             --username ${{ secrets.SF_USERNAME }} \
             --instance-url ${{ secrets.SALESFORCE_INSTANCE_URL }} \
-            --alias ci-target
+            --alias test-org
 
-       - name: Run Apex Tests (CI)
+          # Quick auth check
+          sf org display --target-org test-org
+
+      - name: Run All Apex Tests with Code Coverage
         run: |
-          sf apex run test \
-            --test-level RunLocalTests \
-            --wait 20
-            --test-level RunLocalTests \
-            --wait 45
+          # Runs ALL local tests + shows code coverage + waits up to 30 min
+          sf apex test run \
+            --target-org test-org \
+            --code-coverage \
+            --result-format human \
+            --wait 30 \
+            --verbose
+
+          # Optional: If you want JUnit format for CI reporting (GitHub shows nice summary)
+          # sf apex test run --target-org test-org --code-coverage --result-format junit --wait 30 > test-results.xml
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f server.key
