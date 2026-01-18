@@ -1,0 +1,53 @@
+# .github/workflows/salesforce-ci-cd.yml
+name: Salesforce CI/CD
+
+on:
+  pull_request:
+    branches: [ main, uat ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Important for delta!
+
+      - name: Install Salesforce CLI
+        run: |
+          npm install -g @salesforce/cli
+          echo "sf version: $(sf --version)"
+
+      - name: Authenticate with JWT
+        run: |
+          echo "${{ secrets.SALESFORCE_JWT_SECRET_KEY }}" > server.key
+          sf login org jwt --client-id ${{ secrets.SALESFORCE_CONSUMER_KEY }} \
+            --jwt-key-file server.key \
+            --username ${{ secrets.SALESFORCE_USERNAME }} \
+            --instance-url ${{ secrets.SALESFORCE_INSTANCE_URL }} \
+            --alias ci-target
+
+      - name: Run Apex Tests & Validation (on PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          sf project deploy validate \
+            --source-dir force-app \
+            --target-org ci-target \
+            --test-level RunLocalTests \
+            --code-coverage \
+            --wait 30
+
+      - name: Delta Deploy (on main merge)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Optional: use sfdx-git-delta for real delta (very recommended!)
+          npm install -g sfdx-git-delta
+          sgd source:delta --from main~1 --to main --output changed
+
+          sf project deploy start \
+            --source-dir changed \
+            --target-org ci-target \
+            --test-level RunLocalTests \
+            --wait 45
