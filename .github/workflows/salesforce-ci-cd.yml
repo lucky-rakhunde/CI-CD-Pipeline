@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Use environment for secret isolation (create 'sandbox' or 'test' env in repo settings)
-    environment: sandbox       # ← Change to your env name (sandbox/uat/etc.)
+    environment: Production       # ← Change to your env name (sandbox/uat/etc.)
 
     steps:
       - name: Checkout code
