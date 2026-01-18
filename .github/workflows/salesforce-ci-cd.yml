@@ -22,10 +22,10 @@ jobs:
 
       - name: Authenticate with JWT
         run: |
-          echo "${{ secrets.SALESFORCE_JWT_SECRET_KEY }}" > server.key
-          sf login org jwt --client-id ${{ secrets.SALESFORCE_CONSUMER_KEY }} \
+          echo "${{ secrets.SF_JWT_KEY }}" > server.key
+          sf login org jwt --client-id ${{ secrets.SF_CONSUMER_KEY }} \
             --jwt-key-file server.key \
-            --username ${{ secrets.SALESFORCE_USERNAME }} \
+            --username ${{ secrets.SF_USERNAME }} \
             --instance-url ${{ secrets.SALESFORCE_INSTANCE_URL }} \
             --alias ci-target
 
