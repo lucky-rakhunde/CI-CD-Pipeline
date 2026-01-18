@@ -41,18 +41,13 @@ jobs:
           sf org display --target-org test-org
 
       - name: Run All Apex Tests with Code Coverage
-        run: |
-          # Runs ALL local tests + shows code coverage + waits up to 30 min
+         run: |
           sf apex test run \
             --target-org test-org \
             --code-coverage \
             --result-format human \
-            --wait 30 \
-            --verbose
+            --wait 30
 
-          # Optional: If you want JUnit format for CI reporting (GitHub shows nice summary)
-          # sf apex test run --target-org test-org --code-coverage --result-format junit --wait 30 > test-results.xml
-
-      - name: Cleanup sensitive files
+      - name: Cleanup
         if: always()
         run: rm -f server.key
