@@ -49,9 +49,6 @@ jobs:
             --result-format human \
             --wait 30
 
-          # Optional: If you want JUnit format for CI reporting (GitHub shows nice summary)
-          # sf apex test run --target-org test-org --code-coverage --result-format junit --wait 30 > test-results.xml
-
       - name: Cleanup sensitive files
         if: always()
         run: rm -f server.key
