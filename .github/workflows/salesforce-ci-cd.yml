@@ -34,11 +34,7 @@ jobs:
           # Quick auth check
           sf org display --target-org test-org
 
-      - name: Elevate Session to High Assurance
-        shell: bash
-        run: |
-          echo "Auth.SessionManagement.setSessionLevel(Auth.SessionLevel.HIGH_ASSURANCE);" | \
-          sf apex run --target-org test-org
+    
 
       - name: Run All Apex Tests with Code Coverage
         run: |
