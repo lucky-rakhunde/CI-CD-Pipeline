@@ -1,20 +1,16 @@
 # .github/workflows/salesforce-run-tests.yml
 name: Salesforce - Run Apex Tests Only
-
 on:
   workflow_dispatch:           # Manual trigger from GitHub UI (best for beginners/testing)
   schedule:
     - cron: '0 0 * * *'        # Optional: every day at midnight UTC (adjust as needed)
   pull_request:                # Optional: run on PRs if you want
     branches: [main, uat]
-
 jobs:
   run-apex-tests:
     runs-on: ubuntu-latest
-
     # Use environment for secret isolation (create 'sandbox' or 'test' env in repo settings)
     environment: Production       # ← Change to your env name (sandbox/uat/etc.)
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +24,6 @@ jobs:
         run: |
           # Write private key from secret
           echo "${{ secrets.SF_JWT_KEY }}" > server.key
-
           # Modern login command
           sf org login jwt \
             --client-id ${{ secrets.SF_CONSUMER_KEY }} \
@@ -36,9 +31,14 @@ jobs:
             --username ${{ secrets.SF_USERNAME }} \
             --instance-url ${{ secrets.SALESFORCE_INSTANCE_URL }} \
             --alias test-org
-
           # Quick auth check
           sf org display --target-org test-org
+
+      - name: Elevate Session to High Assurance
+        shell: bash
+        run: |
+          echo "Auth.SessionManagement.setSessionLevel(Auth.SessionLevel.HIGH_ASSURANCE);" | \
+          sf apex run --target-org test-org
 
       - name: Run All Apex Tests with Code Coverage
         run: |
