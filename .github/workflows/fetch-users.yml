@@ -34,13 +34,14 @@ jobs:
             --alias test-org
 
           sf org display --target-org test-org
-
+          
   #    - name: Fetch Salesforce User Details
     #    run: |
     #      sf data query \
     #        --target-org test-org \
     #        --query "SELECT Id, Name, Username, Email, IsActive, Profile.Name FROM User WHERE Username='${{ secrets.SF_USERNAME }}'" \
-    #        --result-format human /#
+    #        --result-format human 
+    
     - name: Retrieve Metadata
       run: |
         sf project retrieve start \
