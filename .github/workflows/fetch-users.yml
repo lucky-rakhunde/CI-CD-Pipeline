@@ -35,13 +35,18 @@ jobs:
 
           sf org display --target-org test-org
 
-      - name: Fetch Salesforce User Details
-        run: |
-          sf data query \
-            --target-org test-org \
-            --query "SELECT Id, Name, Username, Email, IsActive, Profile.Name FROM User WHERE Username='${{ secrets.SF_USERNAME }}'" \
-            --result-format human
-
+  #    - name: Fetch Salesforce User Details
+    #    run: |
+    #      sf data query \
+    #        --target-org test-org \
+    #        --query "SELECT Id, Name, Username, Email, IsActive, Profile.Name FROM User WHERE Username='${{ secrets.SF_USERNAME }}'" \
+    #        --result-format human /#
+    - name: Retrieve Metadata
+      run: |
+        sf project retrieve start \
+          --manifest manifest/package.xml \
+          --target-org test-org
+      
       - name: Cleanup sensitive files
         if: always()
         run: rm -f server.key
