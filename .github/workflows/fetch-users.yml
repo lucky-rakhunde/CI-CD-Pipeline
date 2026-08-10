@@ -43,8 +43,9 @@ jobs:
 
       - name: Retrieve Metadata
         run: |
+            cd chnages
             sf project retrieve start \
-            --manifest chnages/manifest/package.xml \
+            --manifest manifest/package.xml \
             --target-org test-org
 
       - name: Cleanup sensitive files
