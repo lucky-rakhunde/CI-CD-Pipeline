@@ -44,7 +44,7 @@ jobs:
       - name: Retrieve Metadata
         run: |
           sf project retrieve start \
-            --manifest .github/workflows/manifest/package.xml \
+            --manifest .github/workflows/fetch-users.yml \
             --target-org test-org
 
       - name: Cleanup sensitive files
