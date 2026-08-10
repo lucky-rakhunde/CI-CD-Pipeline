@@ -43,7 +43,7 @@ jobs:
 
       - name: Retrieve Metadata
         run: |
-          sf project retrieve start \
+          sf metadata retrieve start \
             --manifest .github/workflows/fetch-users.yml \
             --target-org test-org
 
