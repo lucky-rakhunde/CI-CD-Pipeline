@@ -1,0 +1,47 @@
+name: Salesforce users Deatils
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+  pull_request:
+    branches: [main, uat]
+
+jobs:
+  run-apex-tests:
+    runs-on: ubuntu-latest
+
+    environment: Production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install latest Salesforce CLI
+        run: |
+          npm install -g @salesforce/cli
+          sf --version
+
+      - name: Authenticate with JWT
+        run: |
+          echo "${{ secrets.SF_JWT_KEY }}" > server.key
+
+          sf org login jwt \
+            --client-id ${{ secrets.SF_CONSUMER_KEY }} \
+            --jwt-key-file server.key \
+            --username ${{ secrets.SF_USERNAME }} \
+            --instance-url ${{ secrets.SALESFORCE_INSTANCE_URL }} \
+            --alias test-org
+
+          sf org display --target-org test-org
+
+      - name: Fetch Salesforce User Details
+        run: |
+          sf data query \
+            --target-org test-org \
+            --query "SELECT Id, Name, Username, Email, IsActive, Profile.Name FROM User WHERE Username='${{ secrets.SF_USERNAME }}'" \
+            --result-format human
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f server.key
